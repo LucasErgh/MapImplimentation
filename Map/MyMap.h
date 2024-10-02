@@ -1,38 +1,39 @@
 #ifndef MAP_H
 #define MAP_H
 
-
-
 template <typename K, typename D>
 struct Node {
 	K key;
 	D data;
 	Node* left;
-	mapNode* right;
+	Node* right;
 
 	Node(const K& key, const D& data) : key(key), data(data), left(nullptr), right(nullptr) { };
 };
 
-namespace myMap {
 
-	template <typename K, typename D>
-	class Map
-	{
-	private:
-		Node<K,D>* root;
+template <typename K, typename D>
+class Map
+{
+private:
+	Node<K, D>* root;
 
-		int depth(const Node<K, D>*& node);
-		void balance(const Node<K, D>*&);
+	int balanceFactor(const Node<K, D>* node);
+	void balance(Node<K, D>* node);
+	void deleteMap(Node<K, D>* node);
 
-	public:
-		inline Map() { root = nullptr; }
-		inline Map(const K& key, const D& data) { root = new Node<K, D>(key, data); }
+	void erase(const K& key, Node<K, D>* cur);
+	D find(const K& key, Node<K, D>* node);
 
-		void insert(const K& key, const D& data);
-		void erase(const K& key);
-		D* find(const K& key);
-	};
+public:
+	inline Map() { root = nullptr; }
+	inline Map(const K& key, const D& data) { root = new Node<K, D>(key, data); }
 
-}
+	~Map();
+
+	void insert(const K& key, const D& data);
+	inline void erase(const K& key) { erase(key, root); }
+	inline D find(const K& key) { return find(key, root); }
+};
 
 #endif
