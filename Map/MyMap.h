@@ -1,27 +1,38 @@
 #ifndef MAP_H
 #define MAP_H
 
-#include "Pair.h"
+
 
 template <typename K, typename D>
-class MapNode {
-private:
+struct Node {
+	K key;
+	D data;
+	Node* left;
+	mapNode* right;
 
-
-public:
-
+	Node(const K& key, const D& data) : key(key), data(data), left(nullptr), right(nullptr) { };
 };
 
-template <typename T, typename D>
-class Map
-{
-private:
+namespace myMap {
 
+	template <typename K, typename D>
+	class Map
+	{
+	private:
+		Node<K,D>* root;
 
-public:
-	Map();
-	Map(Pair<K, D> root);
+		int depth(const Node<K, D>*& node);
+		void balance(const Node<K, D>*&);
 
-};
+	public:
+		inline Map() { root = nullptr; }
+		inline Map(const K& key, const D& data) { root = new Node<K, D>(key, data); }
+
+		void insert(const K& key, const D& data);
+		void erase(const K& key);
+		D* find(const K& key);
+	};
+
+}
 
 #endif

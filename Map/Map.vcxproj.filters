@@ -18,17 +18,11 @@
     <ClCompile Include="Map.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Pair.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="MyMap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Pair.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="MyMap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
