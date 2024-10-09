@@ -22,10 +22,14 @@ class Map
 private:
 	Node<K, D>* root;
 
-	void CheckBalance();
+	// This will return the number of black nodes on decent
+	int RecursiveInsert(Node<K, D>*);
+	// Recursive map deletion 
 	void deleteMap(Node<K, D>* node);
-	void erase(const K& key, Node<K, D>* cur);
-	D find(const K& key, Node<K, D>* node);
+	// Recursive erase, returns int to check if tree is balanced 
+	int erase(const K& key, Node<K, D>* cur);
+	// returns data for given node
+	D find(const K& key, Node<K, D>* node) const;
 
 public:
 	inline Map() { root = nullptr; }
@@ -35,7 +39,7 @@ public:
 
 	void insert(const K& key, const D& data);
 	inline void erase(const K& key) { erase(key, root); }
-	inline D find(const K& key) { return find(key, root); }
+	inline D find(const K& key) const { return find(key, root); }
 };
 
 #endif
