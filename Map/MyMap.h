@@ -1,12 +1,16 @@
 #ifndef MAP_H
 #define MAP_H
 
+#define RED = 1
+#define BLACK = 0
+
 template <typename K, typename D>
 struct Node {
 	K key;
 	D data;
 	Node* left;
 	Node* right;
+	bool color;
 
 	Node(const K& key, const D& data) : key(key), data(data), left(nullptr), right(nullptr) { };
 };
