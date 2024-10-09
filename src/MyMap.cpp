@@ -7,44 +7,6 @@
 #include <math.h>
 
 template<typename K, typename D>
-int Map<K,D>::balanceFactor(const Node<K, D>* node) {
-	//int left = (node == nullptr) ? 0 : balanceFactor(node->left), 
-	//	right = (node == nullptr) ? 0 : balanceFactor(node->right);
-	//return left - right;
-
-	return	((node == nullptr) ? 0 : balanceFactor(node->left) + 1)		// left balance factor
-			-															// minus
-			((node == nullptr) ? 0 : balanceFactor(node->right) + 1);	// right balance factor
-}
-
-template<typename K, typename D>
-void Map<K,D>::balance(Node<K, D>* node) {
-	
-	// recurse to leaves
-	if (node->left != nullptr) balance(node->left);
-	if (node->right != nullptr) balance(node->right);
-	
-	
-	// now from bottem up balance
-	int bf = balanceFactor(node);
-
-	// rotate right
-	if (bf > 1) {
-		Node<K, D>* temp = node;
-		node = temp->left;
-		node->right = temp;
-		temp->left = nullptr;
-	}
-	// rotate left
-	else if (bf < -1) {
-		Node<K, D>* temp = node;
-		node = temp->right;
-		node->right = temp;
-		temp->right = nullptr;
-	}
-}
-
-template<typename K, typename D>
 void Map<K,D>::insert(const K& key, const D& data) {
 
 	if (root == nullptr) {
