@@ -1,4 +1,0 @@
-C:/Users/Lucas/CS/Projects/MapImplimentation/build/CMakeFiles/Map.dir
-C:/Users/Lucas/CS/Projects/MapImplimentation/build/CMakeFiles/MyMap.dir
-C:/Users/Lucas/CS/Projects/MapImplimentation/build/CMakeFiles/edit_cache.dir
-C:/Users/Lucas/CS/Projects/MapImplimentation/build/CMakeFiles/rebuild_cache.dir

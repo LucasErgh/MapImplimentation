@@ -22,7 +22,6 @@ class Map
 private:
 	Node<K, D>* root;
 
-	int balanceFactor(const Node<K, D>* 
 	void deleteMap(Node<K, D>* node);
 
 	void erase(const K& key, Node<K, D>* cur);
