@@ -7,6 +7,11 @@
 #include <math.h>
 
 template<typename K, typename D>
+void CheckBalance() {
+	//To-Do Impliment	
+}
+
+template<typename K, typename D>
 void Map<K,D>::insert(const K& key, const D& data) {
 
 	if (root == nullptr) {

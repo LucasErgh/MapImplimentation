@@ -22,8 +22,8 @@ class Map
 private:
 	Node<K, D>* root;
 
+	void CheckBalance();
 	void deleteMap(Node<K, D>* node);
-
 	void erase(const K& key, Node<K, D>* cur);
 	D find(const K& key, Node<K, D>* node);
 
