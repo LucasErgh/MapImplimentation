@@ -1,8 +1,8 @@
 #include <vector>
 
 
-#define RED 1
-#define BLACK 0
+#define RED 0
+#define BLACK 1
 
 #ifndef MAP_H
 #define MAP_H
@@ -13,10 +13,11 @@ struct Node {
 	D data;
 	Node* left;
 	Node* right;
+	Node* parent;
 	bool color;
 
-	Node(const K& key, const D& data, const Node* left, const Node* right, const bool& color = RED) 
-		: key(key), data(data), left(nullptr), right(nullptr), color(color) { };
+	Node(const K& key, const D& data, Node* left = nullptr,  Node* right = nullptr,  Node* parent = nullptr, const bool& color = RED) 
+		: key(key), data(data), left(left), right(right), parent(parent), color(color) { };
 };
 
 
@@ -26,9 +27,11 @@ class Map
 private:
 	Node<K, D>* root;
 
-	void Violations(Node<K, D>*);
+ 	int pathToLeaves(Node<K,D>* cur, int num);
 	void leftRotate(Node<K, D>*);
 	void rightRotate(Node<K, D>*);
+
+	void Violations(Node<K, D>*);
 
 	// Recursive delete function
 	void deleteMap(Node<K, D>* node);
@@ -64,9 +67,8 @@ void Map<K,D>::print(Node<K,D>* cur, int space){
 	print(cur->right, space + 1);
 
 	// print this node
-	for (int i = 0; i < space; ++i) std::cout << "     ";
-	std::cout << cur->key << "(" << ((cur->color) ? "R" : "B") << ")" << std::endl;
-
+	for (int i = 0; i < space; ++i) std::cout << "  ";
+	std::cout << ((!cur->color) ? "\033[31m" : "\033[0m" ) << cur->key << "\033[0m" << std::endl;
 	// print left side
 	print(cur->left, space + 1);
 }
@@ -79,18 +81,84 @@ void Map<K,D>::print(){
 }
 
 template<typename K, typename D>
+int pathToLeaves(Node<K,D>* cur, int num){
+	if(cur == nullptr) return 1;
+	int left = pathToLeaves(cur->left), right = pathToLeaves(cur->right);
+	
+	if (left > right) return left + cur->color; 
+	else return right + cur->color;
+}
+
+template<typename K, typename D>
 void Map<K,D>::Violations(Node<K, D>* node) {
-	//To-Do Impliment	
+	if (node == root) {
+		if (node->color == RED) node->color == BLACK;
+		return;
+	}
+	if (node->color == RED){
+		// check if we violate color rule
+		if((node->left && node->left->color == RED)){
+			if (node->parent->left == node) rightRotate(node->parent);
+			else leftRotate(node->parent);
+		}
+		if((node->right && node->right->color == RED)){
+			if(node->parent->right == node) leftRotate(node->parent);
+			else rightRotate(node->parent);
+		}
+	}
+}
+
+
+
+
+template<typename K, typename D>
+void Map<K,D>::leftRotate(Node<K, D>* g) {
+	/* Naming convention for rotations
+	  G 
+	   \
+	    P
+	   / \
+	  A   B 	*/
+	Node<K,D> *p = g->right;
+
+	g->right = p->left;
+	if(p->left) p->left->parent = g;
+/* 	   	It now looks like this
+	 G  P
+	/    \
+   A      B  */
+
+	// update parents
+	p->parent = g->parent;
+	if(!g->parent) root = p; // check if g was root 
+	else if (g == g->parent->left) g->parent->left = p;
+	else g->parent->right = p;
+
+	// make p's left kid g and make that its parent
+	p->left = g;
+	g->parent = p;
+/*    P  	This is what it looks like now
+	 / \
+	G   B
+     \   
+      A    	*/
 }
 
 template<typename K, typename D>
-void Map<K,D>::leftRotate(Node<K, D>* node) {
-	//To-Do Impliment	
-}
+void Map<K,D>::rightRotate(Node<K, D>* g) {
+	// Pretty much same as leftRotate but mirrored	
+	Node<K,D> *p = g->left;
 
-template<typename K, typename D>
-void Map<K,D>::rightRotate(Node<K, D>* node) {
-	//To-Do Impliment	
+	g->left = p->right;
+	if(p->right) p->right->parent = g;
+
+	p->parent = g->parent;
+	if(!g->parent) root = p;
+	else if (g == g->parent->left) g->parent->left = p;
+	else g->parent->right = p;
+
+	p->left = g;
+	g->parent = p;
 }
 
 // private version
@@ -101,11 +169,17 @@ void Map<K,D>::insert(Node<K,D>* cur, Node<K,D>* node) {
 	// find position for node
 	else if (cur->key > node->key) {
 		if (cur->left != nullptr) insert (cur->left, node);
-		else cur->left = node;
+		else {
+			cur->left = node;
+			cur->left->parent = node;
+		}
 	}
 	else if (cur->key < node->key) {
 		if (cur->right != nullptr) insert (cur->right, node);
-		else cur->right = node; 
+		else{
+			cur->right = node; 
+			cur->right->parent = cur;
+		}
 	}
 	Violations(cur);
  }
@@ -113,8 +187,8 @@ void Map<K,D>::insert(Node<K,D>* cur, Node<K,D>* node) {
 // public version
 template<typename K, typename D>
 void Map<K,D>::insert(const K& key, const D& data) {
-	if(root == nullptr) root = new Node<K,D>{key, data, nullptr, nullptr, BLACK}; 
-	else insert(root, new Node<K,D>{key, data, nullptr, nullptr, RED});
+	if(root == nullptr) root = new Node<K,D>{key, data, nullptr, nullptr, nullptr, BLACK}; 
+	else insert(root, new Node<K,D>{key, data});
 	print();
 	
 }

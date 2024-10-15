@@ -8,7 +8,13 @@ int main()
     Map<int, std::string> map;
 
     // Test insert
-    map.insert(10, "ten");
+    map.insert(3, "five");
+    map.insert(1, "five");
+    map.insert(6, "five");
+    map.insert(5, "five");
+
+
+    /*map.insert(10, "ten");
     map.insert(20, "twenty");
     map.insert(5, "five");
     map.insert(1, "one");
@@ -18,7 +24,7 @@ int main()
     map.insert(7, "seven");
     map.insert(40, "forty");
     map.insert(35, "thirty-five");
-    map.insert(3, "three");
+    map.insert(3, "three");*/
 
     // Test find
     // assert(map.find(10) == "ten");
