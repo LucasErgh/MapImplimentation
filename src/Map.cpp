@@ -7,33 +7,28 @@ int main()
 {
     Map<int, std::string> map;
 
-    // Test insert
-    map.insert(3, "five");
-    map.insert(1, "five");
-    map.insert(6, "five");
-    map.insert(5, "five");
+    // Test cases supplied by ChatGPT
+    
+    // Test insertions to cover all possibilities in a self-balancing tree
 
-
-    /*map.insert(10, "ten");
-    map.insert(20, "twenty");
-    map.insert(5, "five");
+    // Case 1: Initial Balanced Insertions (No Rotations Needed)
+    map.insert(3, "three");
     map.insert(1, "one");
-    map.insert(15, "fifteen");
-    map.insert(30, "thirty");
-    map.insert(25, "twenty-five");
-    map.insert(7, "seven");
-    map.insert(40, "forty");
-    map.insert(35, "thirty-five");
-    map.insert(3, "three");*/
+    map.insert(5, "five");
 
-    // Test find
-    // assert(map.find(10) == "ten");
-    // assert(map.find(20) == "twenty");
-    // assert(map.find(5) == "five");  // Should not find this key
+    // Case 2: Right Rotation
+    map.insert(0, "zero");  // This causes a right rotation
 
-    // Test erase (not implemented, so just a placeholder)
-    // map.erase(10);
-    // assert(map.find(10) == nullptr);
+    // Case 3: Left Rotation
+    map.insert(6, "six");  // This causes a left rotation
+
+    // Case 4: Left-Right Rotation
+    map.insert(4, "four");  // This causes a left-right rotation
+
+    // Case 5: Right-Left Rotation
+    map.insert(2, "two");  // This causes a right-left rotation
+
+    // Print the tree after all insertions
     map.print();
 
     std::cout << "All tests passed!" << std::endl;

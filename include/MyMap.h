@@ -91,25 +91,51 @@ int pathToLeaves(Node<K,D>* cur, int num){
 
 template<typename K, typename D>
 void Map<K,D>::Violations(Node<K, D>* node) {
-	if (node == root) {
-		if (node->color == RED) node->color == BLACK;
-		return;
-	}
-	if (node->color == RED){
-		// check if we violate color rule
-		if((node->left && node->left->color == RED)){
-			if (node->parent->left == node) rightRotate(node->parent);
-			else leftRotate(node->parent);
+	// base case is we are in the root, and if the parent is not red there are no violations here
+	if (node != root && node->parent->color == RED) {
+		
+		if (node->parent == node->parent->parent->left){ // parent is in left branch
+			Node<K,D> * unc = node->parent->parent->right;
+			
+			// case 1 - uncle is red we just recolor parent uncle and grandparent
+			if (unc->color)
+			{
+				node->parent->color = BLACK;
+				unc->color = BLACK;
+				node->parent->parent->color = RED;
+			}
+			
+			else{ // case 2 - Node is right child, we have to do left rotation on parent
+				if (node == node->parent->right){
+					leftRotate(node->parent);
+					node = node->parent;
+				}
+				// case 3 - Node is left child, we have to do right oration on grandparent
+				node->parent->color = BLACK;
+				node->parent->parent->color = RED;
+				rightRotate(node->parent->parent);
+			}
+			
+		} else { // same as above but mirored
+			Node<K,D> * unc = node->parent->parent->left;
+
+			if (unc->color) {
+				node->parent->color = BLACK;
+				unc->color = BLACK;
+				node->parent->parent->color = RED;
+			} else {
+				if (node == node->parent->left){
+					rightRotate(node->parent);
+					node = node->parent;
+				}
+				node->parent->color = BLACK;
+				node->parent->parent->color = RED;
+				leftRotate(node->parent->parent);
+			}
 		}
-		if((node->right && node->right->color == RED)){
-			if(node->parent->right == node) leftRotate(node->parent);
-			else rightRotate(node->parent);
-		}
 	}
+	root->color = BLACK; // root is always black
 }
-
-
-
 
 template<typename K, typename D>
 void Map<K,D>::leftRotate(Node<K, D>* g) {
