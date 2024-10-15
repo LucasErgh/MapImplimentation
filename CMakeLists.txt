@@ -1,10 +1,8 @@
 cmake_minimum_required(VERSION 3.30.0 FATAL_ERROR)
 
-project(MapImplimentation)
+project(MapImplimentation LANGUAGES CXX) # create project
 
-add_executable(Map src/Map.cpp)
+add_executable(Map src/Map.cpp) # create executable target, compile and link Map.cpp
 
-add_library(MyMap src/MyMap.cpp)
-target_include_directories(MyMap PUBLIC include)
-
-target_link_libraries(Map MyMap)
+# Add the include directory so that Map.cpp can find MyMap.h
+target_include_directories(Map PUBLIC include)

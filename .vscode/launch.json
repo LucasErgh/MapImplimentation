@@ -1,0 +1,32 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug C++",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/Map.exe", // Adjust if your executable is different
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb", // Adjust to "lldb" if using that on Mac
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "catch throw", // Add this line to ignore exceptions
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "CMake Build", // Reference to the build task
+            "miDebuggerPath": "C:/Program Files/w64devkit/bin/gdb.exe", // Update this to the correct path to gdb
+            "logging": {
+                "engineLogging": false,
+                "trace": false,
+                "traceResponse": false,
+                "exceptions": true
+            }
+        }
+    ]
+}
