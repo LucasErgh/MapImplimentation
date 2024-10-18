@@ -27,7 +27,7 @@ class Map
 private:
 	Node<K, D>* root;
 
- 	int pathToLeaves(Node<K,D>* cur, int num);
+ 	int pathToLeaves(Node<K,D>* cur, int num = 0);
 	void leftRotate(Node<K, D>*);
 	void rightRotate(Node<K, D>*);
 
@@ -41,6 +41,8 @@ private:
 	void insert(Node<K,D>* cur, Node<K,D>* NewNode);
 
 public:
+	class DeletionOfNonExistantElement{};
+
 	inline Map() { root = nullptr; }
 	inline Map(const K& key, const D& data) { root = new Node<K, D>(key, data); }
 
@@ -81,9 +83,9 @@ void Map<K,D>::print(){
 }
 
 template<typename K, typename D>
-int pathToLeaves(Node<K,D>* cur, int num){
-	if(cur == nullptr) return 1;
-	int left = pathToLeaves(cur->left), right = pathToLeaves(cur->right);
+int Map<K,D>::pathToLeaves(Node<K,D>* cur, int num){
+	if(cur == nullptr) return 0;
+	int left = pathToLeaves(cur->left, num), right = pathToLeaves(cur->right, num);
 	
 	if (left > right) return left + cur->color; 
 	else return right + cur->color;
@@ -91,26 +93,30 @@ int pathToLeaves(Node<K,D>* cur, int num){
 
 template<typename K, typename D>
 void Map<K,D>::Violations(Node<K, D>* node) {
-	// base case is we are in the root, and if the parent is not red there are no violations here
-	if (node != root && node->parent->color == RED) {
+	// I used this website https://pages.cs.wisc.edu/~cs400/readings/Red-Black-Trees/
+	if (node != root && node->color == RED && node->parent->color == RED) { // Case 2 K's parent is red
+
 		
+		// check if we are right or left of node's grandparent
 		if (node->parent == node->parent->parent->left){ // parent is in left branch
-			Node<K,D> * unc = node->parent->parent->right;
+			Node<K,D>* unc = node->parent->parent->right;
 			
 			// case 1 - uncle is red we just recolor parent uncle and grandparent
-			if (unc->color)
+			// Case 2b node's uncle exists and is red so we just recolor
+			if (unc && !unc->color)
 			{
 				node->parent->color = BLACK;
 				unc->color = BLACK;
 				node->parent->parent->color = RED;
 			}
 			
-			else{ // case 2 - Node is right child, we have to do left rotation on parent
-				if (node == node->parent->right){
+			// Case 2a node's uncle is black or null
+			else{ 
+				if (node == node->parent->right){ // if were on the right we have to rotate left on parent then right on grandparent and recolor
 					leftRotate(node->parent);
 					node = node->parent;
 				}
-				// case 3 - Node is left child, we have to do right oration on grandparent
+				// if we're on the left we just recolor and rotate right on grandparent
 				node->parent->color = BLACK;
 				node->parent->parent->color = RED;
 				rightRotate(node->parent->parent);
@@ -119,7 +125,7 @@ void Map<K,D>::Violations(Node<K, D>* node) {
 		} else { // same as above but mirored
 			Node<K,D> * unc = node->parent->parent->left;
 
-			if (unc->color) {
+			if (unc && !unc->color) {
 				node->parent->color = BLACK;
 				unc->color = BLACK;
 				node->parent->parent->color = RED;
@@ -134,6 +140,14 @@ void Map<K,D>::Violations(Node<K, D>* node) {
 			}
 		}
 	}
+
+	// Now we check if its unbalanced 
+	if(pathToLeaves(node->left) > pathToLeaves(node->right)) {
+		rightRotate(node);
+	} else if (pathToLeaves(node->left) < pathToLeaves(node->right)) {
+		leftRotate(node);
+	}
+
 	root->color = BLACK; // root is always black
 }
 
@@ -183,21 +197,22 @@ void Map<K,D>::rightRotate(Node<K, D>* g) {
 	else if (g == g->parent->left) g->parent->left = p;
 	else g->parent->right = p;
 
-	p->left = g;
+	p->right = g;
 	g->parent = p;
 }
 
 // private version
 template<typename K, typename D>
 void Map<K,D>::insert(Node<K,D>* cur, Node<K,D>* node) {
-	// key already exists throw error
-	if (cur->key == node->key) throw "Node already exists";
+	// key already exists replace data
+	if (cur->key == node->key) {cur->data = node->data; delete node; return;}
 	// find position for node
 	else if (cur->key > node->key) {
 		if (cur->left != nullptr) insert (cur->left, node);
 		else {
 			cur->left = node;
-			cur->left->parent = node;
+			cur->left->parent = cur;
+				Violations(node);
 		}
 	}
 	else if (cur->key < node->key) {
@@ -205,6 +220,7 @@ void Map<K,D>::insert(Node<K,D>* cur, Node<K,D>* node) {
 		else{
 			cur->right = node; 
 			cur->right->parent = cur;
+				Violations(node);
 		}
 	}
 	Violations(cur);
@@ -214,24 +230,26 @@ void Map<K,D>::insert(Node<K,D>* cur, Node<K,D>* node) {
 template<typename K, typename D>
 void Map<K,D>::insert(const K& key, const D& data) {
 	if(root == nullptr) root = new Node<K,D>{key, data, nullptr, nullptr, nullptr, BLACK}; 
-	else insert(root, new Node<K,D>{key, data});
+	else insert(root, new Node<K,D>{key, data});	
 	print();
-	
 }
 
 template<typename K, typename D>
 void Map<K,D>::erase(const K& key, Node<K, D>* cur) {
 	Node<K, D>* newCur;
-	if (cur == nullptr) return;
-	if (key < cur.key) {
+	if (cur == nullptr) return; // empty tree, just return
+
+	if (key < cur->key) {
+		if (!cur->left) return; // do nothing if element does not exist
 		if (cur->left->key == key) {
-			delete cur.left;
+			delete cur->left;
 			cur->left = nullptr;
 			return;
 		}
 		else erase(key, cur->left);
 	}
 	else if (key > cur->key) {
+		if(!cur->right) return; // do nothing if element does not exist
 		if (cur->right->key == key) {
 			delete cur->right;
 			cur->right = nullptr;
@@ -240,9 +258,9 @@ void Map<K,D>::erase(const K& key, Node<K, D>* cur) {
 		else erase(key, cur->right);
 	}
 
-	if (cur)
-		Violations(cur);
+	if (cur) Violations(cur);
 
+	print();
 }
 
 
