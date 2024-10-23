@@ -1,6 +1,3 @@
-#include <vector>
-
-
 #define RED 0
 #define BLACK 1
 
@@ -31,11 +28,17 @@ private:
 	void leftRotate(Node<K, D>*);
 	void rightRotate(Node<K, D>*);
 
-	void Violations(Node<K, D>*);
+	void fixInsert(Node<K, D>*);
+	void fixErase(Node<K,D>* p, Node<K,D>*& c);
 
 	// Recursive delete function
 	void deleteMap(Node<K, D>* node);
+
+	// erase a given node
 	void erase(const K& key, Node<K, D>* cur);
+	// find node to replace when erase is called
+	Node<K,D>* findReplacement(Node<K,D>* old);
+	
 	D find(const K& key, Node<K, D>* node);
 	// Recusively find NewNodes correct position and inserts it, then on the way up from recursion checks for violations
 	void insert(Node<K,D>* cur, Node<K,D>* NewNode);
@@ -50,7 +53,7 @@ public:
 
 	// This function just creates the node and calls the private insert function 
 	void insert(const K& key, const D& data);
-	inline void erase(const K& key) { erase(key, root); }
+	inline void erase(const K& key) { erase(key, root); print(); }
 	inline D find(const K& key) { return find(key, root); }
 
 	void print(Node<K,D>* cur, int level);
@@ -92,7 +95,7 @@ int Map<K,D>::pathToLeaves(Node<K,D>* cur, int num){
 }
 
 template<typename K, typename D>
-void Map<K,D>::Violations(Node<K, D>* node) {
+void Map<K,D>::fixInsert(Node<K, D>* node) {
 	// I used this website https://pages.cs.wisc.edu/~cs400/readings/Red-Black-Trees/
 	if (node != root && node->color == RED && node->parent->color == RED) { // Case 2 K's parent is red
 
@@ -152,11 +155,78 @@ void Map<K,D>::Violations(Node<K, D>* node) {
 }
 
 template<typename K, typename D>
+void Map<K,D>::fixErase(Node<K,D>* p, Node<K,D>*& x){ // p for parent, x for cur. I need parent because im not using nill leaves
+	// Example of Cases I usedhttps://www.cs.ucf.edu/~dmarino/ucf/cop3503/lectures/RBTrees02.pdf
+	if (x != root && (!x || x->color == BLACK)) {
+		
+		if (x == p->left) {
+			// Case 1: x is the left child
+			Node<K, D>* w = p->right; // sibling
+			if (w->color == RED) {
+				// Case 1.1: Sibling is red
+				w->color = BLACK;
+				p->color = RED;
+				leftRotate(p);
+				w = p->right;
+			} else if ((!w->left || w->left->color == BLACK) &&
+				(!w->right || w->right->color == BLACK)) {
+				// Case 1.2: Sibling is black and both of its children are black
+				w->color = RED;
+				x = p;
+			} else if (!w->right || w->right->color == BLACK) {
+				// Case 1.3: Sibling is black and its left child is red
+					if (w->left) w->left->color = BLACK;
+					w->color = RED;
+					rightRotate(w);
+					w = p->right;
+			} else {
+				// Case 1.4: Sibling is black and its right child is red
+				w->color = p->color;
+				p->color = BLACK;
+				if (w->right) w->right->color = BLACK;
+				if (w->left) w->left->color = RED;
+				leftRotate(p);
+				x = p; // return new node after rotation
+			}
+		} else { // Case 2: x is the right child (mirror case of above)
+			Node<K, D>* w = x->parent->left;
+			if (w->color == RED) {
+				// Case 2.1: Sibling is red
+				w->color = BLACK;
+				p->color = RED;
+				rightRotate(p);
+				w = p->left;
+			} else if ((!w->left || w->left->color == BLACK) &&
+				(!w->right || w->right->color == BLACK)) {
+				// Case 2.2: Sibling is black and both of its children are black
+				w->color = RED;
+				x = p;
+			} else if (w->left == nullptr || w->left->color == BLACK) {
+				// Case 2.3: Sibling's left child is black, right child is red
+				if (w->right) w->right->color = BLACK;
+				w->color = RED;
+				leftRotate(w);
+				w = p->left;
+			} else {
+				// Case 2.4: Sibling's left child is red
+				w->color = p->color;
+				p->color = BLACK;
+				if (w->left) w->left->color = BLACK;
+				if (w->right) w->right->color = RED;
+				rightRotate(p);
+				x = p;
+			}
+		}
+	}
+	if (root) root->color = BLACK;
+}
+
+template<typename K, typename D>
 void Map<K,D>::leftRotate(Node<K, D>* g) {
 	/* Naming convention for rotations
 	  G 
-	   \
-	    P
+	 / \
+	U   P
 	   / \
 	  A   B 	*/
 	Node<K,D> *p = g->right;
@@ -164,9 +234,9 @@ void Map<K,D>::leftRotate(Node<K, D>* g) {
 	g->right = p->left;
 	if(p->left) p->left->parent = g;
 /* 	   	It now looks like this
-	 G  P
-	/    \
-   A      B  */
+	 G   P
+	/ \   \
+   U   A   B  */
 
 	// update parents
 	p->parent = g->parent;
@@ -180,8 +250,8 @@ void Map<K,D>::leftRotate(Node<K, D>* g) {
 /*    P  	This is what it looks like now
 	 / \
 	G   B
-     \   
-      A    	*/
+   / \   
+  U   A    	*/
 }
 
 template<typename K, typename D>
@@ -212,7 +282,7 @@ void Map<K,D>::insert(Node<K,D>* cur, Node<K,D>* node) {
 		else {
 			cur->left = node;
 			cur->left->parent = cur;
-				Violations(node);
+				fixInsert(node);
 		}
 	}
 	else if (cur->key < node->key) {
@@ -220,11 +290,11 @@ void Map<K,D>::insert(Node<K,D>* cur, Node<K,D>* node) {
 		else{
 			cur->right = node; 
 			cur->right->parent = cur;
-				Violations(node);
+				fixInsert(node);
 		}
 	}
-	Violations(cur);
- }
+    fixInsert(cur);
+}
 
 // public version
 template<typename K, typename D>
@@ -234,35 +304,63 @@ void Map<K,D>::insert(const K& key, const D& data) {
 	print();
 }
 
+// this does a standard bst erase then calls fixErase to recolor and rotate as needed
 template<typename K, typename D>
 void Map<K,D>::erase(const K& key, Node<K, D>* cur) {
-	Node<K, D>* newCur;
-	if (cur == nullptr) return; // empty tree, just return
+	if (cur == nullptr) return; // empty tree or node doesn't exist, just return
 
-	if (key < cur->key) {
-		if (!cur->left) return; // do nothing if element does not exist
-		if (cur->left->key == key) {
-			delete cur->left;
-			cur->left = nullptr;
-			return;
-		}
-		else erase(key, cur->left);
+	if (key < cur->key) { // search left
+		erase(key, cur->left);
+
 	}
-	else if (key > cur->key) {
-		if(!cur->right) return; // do nothing if element does not exist
-		if (cur->right->key == key) {
-			delete cur->right;
-			cur->right = nullptr;
+	else if (key > cur->key) { // search right
+		erase(key, cur->right);
+	}
+	else { // found node to delete
+
+		if(cur->left == nullptr){
+			// when there isn't a left child we just replace with right child
+			Node<K, D>* temp = cur->right;
+			if (cur->parent->left == cur) cur->parent->left = temp;
+			else  cur->parent->right = temp;
+			if (temp) temp->parent = cur->parent;
+			// fix tree and delete old node
+			if (cur->color == BLACK) fixErase(cur->parent, temp);
+			delete cur;
 			return;
+		} else if (cur->right == nullptr){
+			// when there isn't a right child we just replace with left child
+			Node<K,D>* temp = cur->left;
+			// make parent point to new node and new node point to parent
+			if (cur->parent->left == cur) cur->parent->left = temp;
+			else  cur->parent->right = temp;
+			if (temp) temp->parent = cur->parent;
+			// fix tree and delete old node
+			if (!temp || cur->color == BLACK) fixErase(cur->parent, temp);
+			delete cur;
+			return;
+		} else{
+			// if cur has both children we find a replacement
+			Node<K,D>* temp = findReplacement(cur);
+			// make parent point to new node and new node point to parent
+			if (cur->parent->left == cur) cur->parent->left = temp;
+			else cur->parent->right = temp;
+			if (temp) temp->parent = cur->parent;
+			// fix tree and delete old nodes
+			fixErase(cur->parent, temp);
+			delete cur;
 		}
-		else erase(key, cur->right);
 	}
 
-	if (cur) Violations(cur);
-
-	print();
 }
 
+template<typename K, typename D>
+Node<K,D>* Map<K,D>::findReplacement(Node<K,D>* cur){
+	cur = cur->right;
+	while (cur != nullptr && cur->left != nullptr)
+		cur = cur->left;
+	return cur;
+}
 
 template<typename K, typename D>
 D Map<K,D>::find(const K& key, Node<K, D>* node) {
